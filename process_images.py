@@ -15,7 +15,7 @@ csv_path = 'data/dataset.csv'
 
 with open(csv_path, 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
-    writer.writerow(['image_name', 'resolution', 'file_size', 'entropy', 'variance', 'edge_density', 'y_entropy', 'y_variance', 'u_variance', 'v_variance', 'y_edge_density', 'y_mean'])
+    writer.writerow(['image_name', 'resolution', 'file_size', 'entropy', 'variance', 'edge_density', 'y_entropy', 'y_variance', 'u_variance', 'v_variance', 'y_edge_density', 'y_mean', 'num_pixels', 'bit_density'])
 
     for filename in os.listdir(images_dir):
         if not filename.endswith('.jpg'):
@@ -43,6 +43,7 @@ with open(csv_path, 'w', newline='') as csvfile:
         y_mean = np.mean(Y)
         for width in widths:
             height = int(width * img.height / img.width)
+            num_pixels = width * height
             resized = img.resize((width, height), Image.LANCZOS)
             # save temp
             temp_path = f'temp_{image_name}_{width}.png'
@@ -53,7 +54,8 @@ with open(csv_path, 'w', newline='') as csvfile:
             subprocess.run(['avifenc', temp_path, '-o', avif_path, '-q', '50'], check=True)
             # get size
             file_size = os.path.getsize(avif_path)
+            bit_density = (file_size * 8) / num_pixels
             # write to csv
-            writer.writerow([image_name, width, file_size, entropy, variance, edge_density, y_entropy, y_variance, u_variance, v_variance, y_edge_density, y_mean])
+            writer.writerow([image_name, width, file_size, entropy, variance, edge_density, y_entropy, y_variance, u_variance, v_variance, y_edge_density, y_mean, num_pixels, bit_density])
             # remove temp
             os.remove(temp_path)
