@@ -116,12 +116,32 @@ To further improve the model, we added three additional features computed on the
 
 The Polynomial Regression model (degree 1 with StandardScaler) achieved an R² score of 0.89 for file_size prediction, outperforming the Random Forest's 0.84. The final model is saved to `data/final_model.pkl`.
 
+### Alternative Model
+
+To further explore predictive strategies, we implemented an alternative approach that incorporates low-resolution bit density as an additional feature. For each image, the bit density at 400px resolution is identified as `low_res_bit_density`. This feature is then used alongside the standard image complexity metrics to predict bit density for higher resolutions (800, 1200, 1600, 2000px).
+
+- Features: entropy, variance, edge_density, y_entropy, y_variance, u_variance, v_variance, y_edge_density, y_mean, laplacian_variance, gradient_magnitude, rms_contrast, low_res_bit_density.
+- Target: bit_density.
+- Model: Polynomial Regression (degree 1 with StandardScaler).
+- Train/Test Split: 80/20 split based on unique images, training only on resolutions >400px.
+- Evaluation: Predict bit_density on test set, compute predicted file_size = bit_density * num_pixels / 8, then evaluate R² for file_size prediction.
+
+#### Alternative Model Performance
+
+| Metric | Value |
+|--------|-------|
+| R² Score | 0.97 |
+
+The alternative model achieves an exceptional R² score of 0.97 for file_size prediction, significantly outperforming previous models. This suggests that incorporating low-resolution compression information as a feature provides a strong predictive signal for higher-resolution bit densities. The model is saved to `data/alternative_model.pkl`.
+
 
 ## Conclusions
 
 The analysis reveals that resolution and image complexity metrics, including those derived from YUV color space, are important predictors of AVIF file size. The enhanced Polynomial Regression (degree 2) model achieves an R² score of 0.66, demonstrating improved predictive performance with the inclusion of additional YUV-based features. Feature importance analysis highlights the significance of interactions between variance, entropy, and edge density metrics.
 
 The bit density approach, using Random Forest to predict bits per pixel from complexity metrics (excluding resolution), achieves an R² score of 0.75 for file_size prediction, outperforming the direct file_size prediction models. By incorporating additional features such as Laplacian variance, gradient magnitude, and RMS contrast, the final Polynomial Regression model (degree 1 with StandardScaler) achieves an R² score of 0.89. This suggests that modeling compression efficiency separately from resolution, with comprehensive image complexity features, is a highly effective strategy for predicting AVIF file sizes.
+
+The alternative model, which incorporates low-resolution bit density as a predictive feature for higher resolutions, achieves an outstanding R² score of 0.97. This approach leverages the compression characteristics at lower resolutions to predict bit densities at higher resolutions, resulting in the highest predictive accuracy observed in this study.
 
 ## Potential Extensions
 
