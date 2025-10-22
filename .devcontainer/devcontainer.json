@@ -1,0 +1,28 @@
+{
+  "name": "${localWorkspaceFolderBasename}-devcontainer",
+  "build": {
+    "dockerfile": "./Dockerfile",
+    "context": ".."
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "username": "vscode"
+    }
+  },
+  "remoteUser": "vscode",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-docker",
+        "skellock.just"
+      ]
+    }
+  },
+  "mounts": [
+    {
+      "source": "${localWorkspaceFolderBasename}-vscode-global-storage",
+      "target": "/home/vscode/.vscode-server/data/User/globalStorage",
+      "type": "volume"
+    }
+  ]
+}
