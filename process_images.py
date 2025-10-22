@@ -38,7 +38,7 @@ with open(csv_path, 'w', newline='') as csvfile:
             # convert to avif
             avif_name = f'{image_name}_{width}.avif'
             avif_path = os.path.join(avif_dir, avif_name)
-            subprocess.run(['avifenc', temp_path, '-o', avif_path, '-q', '65'], check=True)
+            subprocess.run(['avifenc', temp_path, '-o', avif_path, '-q', '50'], check=True)
             # get size
             file_size = os.path.getsize(avif_path)
             # write to csv
