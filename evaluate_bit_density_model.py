@@ -14,14 +14,14 @@ train_images, test_images = train_test_split(unique_images, test_size=0.2, rando
 test_data = data[data['image_name'].isin(test_images)]
 
 # Features and target for bit_density
-features = ['entropy', 'variance', 'edge_density', 'y_entropy', 'y_variance', 'u_variance', 'v_variance', 'y_edge_density', 'y_mean']
+features = ['entropy', 'variance', 'edge_density', 'y_entropy', 'y_variance', 'u_variance', 'v_variance', 'y_edge_density', 'y_mean', 'laplacian_variance', 'gradient_magnitude', 'rms_contrast']
 target = 'bit_density'
 
 X_test = test_data[features]
 y_test_bit_density = test_data[target]
 
-# Load bit_density model
-with open('data/bit_density_model.pkl', 'rb') as f:
+# Load final model
+with open('data/final_model.pkl', 'rb') as f:
     model = pickle.load(f)
 
 # Generate predictions for bit_density
@@ -40,9 +40,9 @@ scatter = plt.scatter(actual_file_size, predicted_file_size, c=test_data['resolu
 plt.colorbar(scatter, label='Resolution')
 plt.xlabel('Actual File Size')
 plt.ylabel('Predicted File Size')
-plt.title('Actual vs Predicted File Size (Bit Density Model)')
+plt.title('Actual vs Predicted File Size (Final Model)')
 plt.plot([actual_file_size.min(), actual_file_size.max()], [actual_file_size.min(), actual_file_size.max()], 'k--', lw=2)
-plt.savefig('data/plots/bit_density_performance.png')
+plt.savefig('data/plots/final_model_performance.png')
 plt.close()
 
 # Box plot: relative errors grouped by resolution
@@ -54,6 +54,6 @@ plt.figure(figsize=(8, 6))
 sns.boxplot(x='resolution', y='relative_error', data=test_data_with_errors)
 plt.xlabel('Resolution')
 plt.ylabel('Relative Prediction Error (%)')
-plt.title('Relative Prediction Errors by Resolution (Bit Density Model)')
-plt.savefig('data/plots/bit_density_errors.png')
+plt.title('Relative Prediction Errors by Resolution (Final Model)')
+plt.savefig('data/plots/final_model_errors.png')
 plt.close()

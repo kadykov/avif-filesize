@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import PolynomialFeatures
+from sklearn.preprocessing import PolynomialFeatures, StandardScaler
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
@@ -19,7 +19,7 @@ train_data = data[data['image_name'].isin(train_images)]
 test_data = data[data['image_name'].isin(test_images)]
 
 # Features and target (exclude resolution)
-features = ['entropy', 'variance', 'edge_density', 'y_entropy', 'y_variance', 'u_variance', 'v_variance', 'y_edge_density', 'y_mean']
+features = ['entropy', 'variance', 'edge_density', 'y_entropy', 'y_variance', 'u_variance', 'v_variance', 'y_edge_density', 'y_mean', 'laplacian_variance', 'gradient_magnitude', 'rms_contrast']
 target = 'bit_density'
 
 X_train = train_data[features]
@@ -27,8 +27,8 @@ y_train = train_data[target]
 X_test = test_data[features]
 y_test = test_data[target]
 
-# Train Polynomial Regression (degree 2)
-poly_model = Pipeline([('poly', PolynomialFeatures(degree=2)), ('linear', LinearRegression())])
+# Train Polynomial Regression (degree 1)
+poly_model = Pipeline([('scaler', StandardScaler()), ('poly', PolynomialFeatures(degree=1)), ('linear', LinearRegression())])
 poly_model.fit(X_train, y_train)
 
 # Train Random Forest
@@ -62,7 +62,7 @@ for name, model in models.items():
         best_model = model
 
 # Save best model
-with open('data/bit_density_model.pkl', 'wb') as f:
+with open('data/final_model.pkl', 'wb') as f:
     pickle.dump(best_model, f)
 
 print(f"Best model saved: {type(best_model).__name__} with R2: {best_r2}")

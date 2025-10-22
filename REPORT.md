@@ -37,6 +37,9 @@ Additionally, metrics from the YUV color space:
 - V Variance: Variance of the V (chrominance) channel.
 - Y Edge Density: Fraction of pixels identified as edges in the Y channel using Canny.
 - Y Mean: Mean value of the Y channel.
+- Laplacian Variance: Variance of the Laplacian filter applied to the Y channel.
+- Gradient Magnitude: Mean of the Sobel gradient magnitude on the Y channel.
+- RMS Contrast: Standard deviation of the Y channel (root mean square contrast).
 
 ### Analysis
 
@@ -83,7 +86,7 @@ To explore an alternative modeling strategy, we introduced a bit density metric,
 
 - Features: entropy, variance, edge_density, y_entropy, y_variance, u_variance, v_variance, y_edge_density, y_mean (excluding resolution).
 - Target: bit_density.
-- Models: Polynomial Regression (degree 2) and Random Forest.
+- Models: Polynomial Regression (degree 1 with StandardScaler) and Random Forest.
 - Evaluation: Predict bit_density on test set, compute predicted file_size = bit_density * num_pixels / 8, then evaluate MSE, MAE, and R² for file_size prediction.
 
 #### Bit Density Model Performance
@@ -95,23 +98,30 @@ To explore an alternative modeling strategy, we introduced a bit density metric,
 
 The Random Forest model performed best with an R² score of 0.75 for file_size prediction. The best model is saved to `data/bit_density_model.pkl`.
 
-#### Feature Importance
+### Final Model with Additional Features
 
-Due to the polynomial nature of the model, feature importance is assessed through the coefficients of the expanded feature space. The most influential terms (by absolute coefficient) include interactions between variance, entropy, and edge density metrics. Top features:
+To further improve the model, we added three additional features computed on the Y channel: Laplacian Variance, Gradient Magnitude, and RMS Contrast.
 
-- variance y_entropy: -318,656,710
-- variance: 318,239,514
-- variance y_edge_density: -303,409,050
-- entropy variance: 291,532,637
-- variance edge_density: -239,853,381
+- Features: entropy, variance, edge_density, y_entropy, y_variance, u_variance, v_variance, y_edge_density, y_mean, laplacian_variance, gradient_magnitude, rms_contrast.
+- Target: bit_density.
+- Models: Polynomial Regression (degree 2) and Random Forest.
+- Evaluation: Predict bit_density on test set, compute predicted file_size = bit_density * num_pixels / 8, then evaluate MSE, MAE, and R² for file_size prediction.
 
-These results indicate that complex interactions between image complexity metrics are key predictors of AVIF file size.
+#### Final Model Performance
+
+| Model | MSE | MAE | R² Score |
+|-------|-----|-----|----------|
+| Polynomial Regression (degree 1 with scaling) | 4,545,842,022.29 | 41,145.08 | 0.89 |
+| Random Forest | 6,672,626,856.07 | 50,376.14 | 0.84 |
+
+The Polynomial Regression model (degree 1 with StandardScaler) achieved an R² score of 0.89 for file_size prediction, outperforming the Random Forest's 0.84. The final model is saved to `data/final_model.pkl`.
+
 
 ## Conclusions
 
 The analysis reveals that resolution and image complexity metrics, including those derived from YUV color space, are important predictors of AVIF file size. The enhanced Polynomial Regression (degree 2) model achieves an R² score of 0.66, demonstrating improved predictive performance with the inclusion of additional YUV-based features. Feature importance analysis highlights the significance of interactions between variance, entropy, and edge density metrics.
 
-The bit density approach, using Random Forest to predict bits per pixel from complexity metrics (excluding resolution), achieves an R² score of 0.75 for file_size prediction, outperforming the direct file_size prediction models. This suggests that modeling compression efficiency separately from resolution may be a promising direction for further improvement.
+The bit density approach, using Random Forest to predict bits per pixel from complexity metrics (excluding resolution), achieves an R² score of 0.75 for file_size prediction, outperforming the direct file_size prediction models. By incorporating additional features such as Laplacian variance, gradient magnitude, and RMS contrast, the final Polynomial Regression model (degree 1 with StandardScaler) achieves an R² score of 0.89. This suggests that modeling compression efficiency separately from resolution, with comprehensive image complexity features, is a highly effective strategy for predicting AVIF file sizes.
 
 ## Potential Extensions
 
