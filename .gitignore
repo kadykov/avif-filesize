@@ -208,3 +208,6 @@ __marimo__/
 
 # Downloaded images
 data/images
+
+# Converted AVIF images
+data/avif

@@ -20,6 +20,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     ca-certificates \
     unzip \
     just \
+    libavif-bin \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
