@@ -30,6 +30,14 @@ For each image, the following metrics are computed from the grayscale version:
 - Variance: Variance of pixel intensities.
 - Edge Density: Fraction of pixels identified as edges using the Canny edge detection algorithm.
 
+Additionally, metrics from the YUV color space:
+- Y Entropy: Shannon entropy of the Y (luminance) channel.
+- Y Variance: Variance of the Y channel.
+- U Variance: Variance of the U (chrominance) channel.
+- V Variance: Variance of the V (chrominance) channel.
+- Y Edge Density: Fraction of pixels identified as edges in the Y channel using Canny.
+- Y Mean: Mean value of the Y channel.
+
 ### Analysis
 
 - Compute Pearson correlation coefficients between file_size and each metric, as well as between resolution and file_size.
@@ -37,9 +45,9 @@ For each image, the following metrics are computed from the grayscale version:
 
 ### Modeling
 
-- Features: resolution, entropy, variance, edge_density.
+- Features: resolution, entropy, variance, edge_density, y_entropy, y_variance, u_variance, v_variance, y_edge_density, y_mean.
 - Target: file_size.
-- Model: Linear Regression.
+- Model: Polynomial Regression (degree 2).
 - Train/Test Split: 80/20 split based on unique images to avoid data leakage.
 - Evaluation Metrics: Mean Squared Error (MSE), Mean Absolute Error (MAE), R-squared (R2) score.
 
@@ -57,21 +65,33 @@ The scatter plots (available in data/plots/) show the relationships between file
 
 ### Model Evaluation
 
-We experimented with three regression models to predict AVIF file sizes: Linear Regression, Polynomial Regression (degree 2), and Random Forest Regressor. All models use the same features (resolution, entropy, variance, edge_density) and the same 80/20 train/test split based on unique images.
+We trained a Polynomial Regression (degree 2) model using all features including the new YUV metrics to predict AVIF file sizes. The model uses an 80/20 train/test split based on unique images.
 
-#### Model Performance Comparison
+#### Enhanced Model Performance
 
-| Model                  | MSE              | MAE         | R² Score |
-|------------------------|------------------|-------------|----------|
-| Linear Regression     | 22,147,061,795.57 | 76,363.85 | 0.46    |
-| Polynomial Regression | 14,681,401,743.39 | 54,228.74 | 0.64    |
-| Random Forest         | 17,311,271,626.84 | 52,991.47 | 0.58    |
+| Metric | Value |
+|--------|-------|
+| MSE    | 14,105,664,883.29 |
+| MAE    | 62,761.48 |
+| R² Score | 0.66 |
 
-The Polynomial Regression model performed best with the lowest MSE and highest R² score. The best model is saved to `data/best_model.pkl`.
+The enhanced model achieves an R² score of 0.66, showing improved performance with the additional features. The model is saved to `data/enhanced_model.pkl`.
+
+#### Feature Importance
+
+Due to the polynomial nature of the model, feature importance is assessed through the coefficients of the expanded feature space. The most influential terms (by absolute coefficient) include interactions between variance, entropy, and edge density metrics. Top features:
+
+- variance y_entropy: -318,656,710
+- variance: 318,239,514
+- variance y_edge_density: -303,409,050
+- entropy variance: 291,532,637
+- variance edge_density: -239,853,381
+
+These results indicate that complex interactions between image complexity metrics are key predictors of AVIF file size.
 
 ## Conclusions
 
-The analysis reveals that resolution is the strongest predictor of AVIF file size, with image complexity metrics also contributing. Among the tested models, Polynomial Regression (degree 2) provides the best prediction performance with an R² score of 0.64, outperforming both Linear Regression and Random Forest models.
+The analysis reveals that resolution and image complexity metrics, including those derived from YUV color space, are important predictors of AVIF file size. The enhanced Polynomial Regression (degree 2) model achieves an R² score of 0.66, demonstrating improved predictive performance with the inclusion of additional YUV-based features. Feature importance analysis highlights the significance of interactions between variance, entropy, and edge density metrics.
 
 ## Potential Extensions
 

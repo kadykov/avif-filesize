@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image
 from skimage.measure import shannon_entropy
 from skimage.feature import canny
-from skimage.color import rgb2gray
+from skimage.color import rgb2gray, rgb2ycbcr
 
 widths = [400, 800, 1200, 1600, 2000]
 images_dir = 'data/images'
@@ -15,7 +15,7 @@ csv_path = 'data/dataset.csv'
 
 with open(csv_path, 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
-    writer.writerow(['image_name', 'resolution', 'file_size', 'entropy', 'variance', 'edge_density'])
+    writer.writerow(['image_name', 'resolution', 'file_size', 'entropy', 'variance', 'edge_density', 'y_entropy', 'y_variance', 'u_variance', 'v_variance', 'y_edge_density', 'y_mean'])
 
     for filename in os.listdir(images_dir):
         if not filename.endswith('.jpg'):
@@ -29,6 +29,18 @@ with open(csv_path, 'w', newline='') as csvfile:
         variance = np.var(gray)
         edges = canny(gray)
         edge_density = np.sum(edges) / edges.size
+        # YUV metrics
+        ycbcr = rgb2ycbcr(np.array(img))
+        Y = ycbcr[:, :, 0]
+        U = ycbcr[:, :, 1]
+        V = ycbcr[:, :, 2]
+        y_entropy = shannon_entropy(Y)
+        y_variance = np.var(Y)
+        u_variance = np.var(U)
+        v_variance = np.var(V)
+        y_edges = canny(Y)
+        y_edge_density = np.sum(y_edges) / y_edges.size
+        y_mean = np.mean(Y)
         for width in widths:
             height = int(width * img.height / img.width)
             resized = img.resize((width, height), Image.LANCZOS)
@@ -42,6 +54,6 @@ with open(csv_path, 'w', newline='') as csvfile:
             # get size
             file_size = os.path.getsize(avif_path)
             # write to csv
-            writer.writerow([image_name, width, file_size, entropy, variance, edge_density])
+            writer.writerow([image_name, width, file_size, entropy, variance, edge_density, y_entropy, y_variance, u_variance, v_variance, y_edge_density, y_mean])
             # remove temp
             os.remove(temp_path)

@@ -19,7 +19,7 @@ train_data = data[data['image_name'].isin(train_images)]
 test_data = data[data['image_name'].isin(test_images)]
 
 # Features and target
-features = ['resolution', 'entropy', 'variance', 'edge_density']
+features = ['resolution', 'entropy', 'variance', 'edge_density', 'y_entropy', 'y_variance', 'u_variance', 'v_variance', 'y_edge_density', 'y_mean']
 target = 'file_size'
 
 X_train = train_data[features]
@@ -27,68 +27,29 @@ y_train = train_data[target]
 X_test = test_data[features]
 y_test = test_data[target]
 
-# Train model
-model = LinearRegression()
+# Train Polynomial Regression (degree 2)
+model = Pipeline([('poly', PolynomialFeatures(degree=2)), ('linear', LinearRegression())])
 model.fit(X_train, y_train)
 
-# Evaluate Linear Regression
-y_pred_lr = model.predict(X_test)
-mse_lr = mean_squared_error(y_test, y_pred_lr)
-mae_lr = mean_absolute_error(y_test, y_pred_lr)
-r2_lr = r2_score(y_test, y_pred_lr)
+# Evaluate
+y_pred = model.predict(X_test)
+mse = mean_squared_error(y_test, y_pred)
+mae = mean_absolute_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
 
-print("Linear Regression:")
-print(f"MSE: {mse_lr}")
-print(f"MAE: {mae_lr}")
-print(f"R2 Score: {r2_lr}")
+print("Enhanced Polynomial Regression (degree 2):")
+print(f"MSE: {mse}")
+print(f"MAE: {mae}")
+print(f"R2 Score: {r2}")
 
-# Polynomial Regression (degree 2)
-model_poly = Pipeline([('poly', PolynomialFeatures(degree=2)), ('linear', LinearRegression())])
-model_poly.fit(X_train, y_train)
+# Feature importance (coefficients from linear model)
+poly_features = model.named_steps['poly'].get_feature_names_out(features)
+coefficients = model.named_steps['linear'].coef_
+feature_importance = dict(zip(poly_features, coefficients))
+print("\nFeature Importance (Polynomial Coefficients):")
+for feat, coef in sorted(feature_importance.items(), key=lambda x: abs(x[1]), reverse=True):
+    print(f"{feat}: {coef}")
 
-y_pred_poly = model_poly.predict(X_test)
-mse_poly = mean_squared_error(y_test, y_pred_poly)
-mae_poly = mean_absolute_error(y_test, y_pred_poly)
-r2_poly = r2_score(y_test, y_pred_poly)
-
-print("\nPolynomial Regression (degree 2):")
-print(f"MSE: {mse_poly}")
-print(f"MAE: {mae_poly}")
-print(f"R2 Score: {r2_poly}")
-
-# Random Forest Regressor
-model_rf = RandomForestRegressor(random_state=42)
-model_rf.fit(X_train, y_train)
-
-y_pred_rf = model_rf.predict(X_test)
-mse_rf = mean_squared_error(y_test, y_pred_rf)
-mae_rf = mean_absolute_error(y_test, y_pred_rf)
-r2_rf = r2_score(y_test, y_pred_rf)
-
-print("\nRandom Forest Regressor:")
-print(f"MSE: {mse_rf}")
-print(f"MAE: {mae_rf}")
-print(f"R2 Score: {r2_rf}")
-
-# Compare models (select best based on lowest MSE)
-models = {
-    'Linear Regression': (mse_lr, mae_lr, r2_lr, model),
-    'Polynomial Regression': (mse_poly, mae_poly, r2_poly, model_poly),
-    'Random Forest': (mse_rf, mae_rf, r2_rf, model_rf)
-}
-
-best_model_name = min(models, key=lambda x: models[x][0])
-best_mse, best_mae, best_r2, best_model = models[best_model_name]
-
-print(f"\nBest model: {best_model_name}")
-print(f"MSE: {best_mse}")
-print(f"MAE: {best_mae}")
-print(f"R2 Score: {best_r2}")
-
-# Save best model
-with open('data/best_model.pkl', 'wb') as f:
-    pickle.dump(best_model, f)
-
-# Also save the original linear model
-with open('data/model.pkl', 'wb') as f:
+# Save enhanced model
+with open('data/enhanced_model.pkl', 'wb') as f:
     pickle.dump(model, f)
