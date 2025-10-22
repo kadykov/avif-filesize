@@ -134,6 +134,50 @@ To further explore predictive strategies, we implemented an alternative approach
 
 The alternative model achieves an exceptional R² score of 0.97 for file_size prediction, significantly outperforming previous models. This suggests that incorporating low-resolution compression information as a feature provides a strong predictive signal for higher-resolution bit densities. The model is saved to `data/alternative_model.pkl`.
 
+### Simplified Model
+
+To reduce model complexity while maintaining predictive performance, we selected the top 5 features by absolute coefficient value from the alternative model, ensuring that `low_res_bit_density` is included. The selected features are: `u_variance`, `edge_density`, `rms_contrast`, `low_res_bit_density`, `y_entropy`.
+
+The model was retrained using these features with the same Polynomial Regression (degree 1 with StandardScaler) approach.
+
+#### Simplified Model Performance
+
+| Metric | Value |
+|--------|-------|
+| R² Score | 0.94 |
+
+The simplified model achieves an R² score of 0.94 for file_size prediction, slightly lower than the full alternative model's 0.97 but with significantly fewer features.
+
+#### Feature Importance
+
+The coefficients for the simplified model are:
+
+- u_variance: 0.0
+- edge_density: -0.003
+- rms_contrast: 0.254
+- low_res_bit_density: -0.009
+- y_entropy: 0.248
+
+The model is saved to `data/simplified_model.pkl`.
+
+### Mid-Resolution Model
+
+To focus on mid-resolution images, we trained a model specifically on data where resolution is between 800 and 2000 pixels. This approach aims to improve prediction accuracy for this resolution range by training on relevant data.
+
+- Features: entropy, variance, edge_density, y_entropy, y_variance, u_variance, v_variance, y_edge_density, y_mean, laplacian_variance, gradient_magnitude, rms_contrast (excluding low_res_bit_density).
+- Target: bit_density.
+- Model: Polynomial Regression (degree 1 with StandardScaler).
+- Train/Test Split: 80/20 split based on unique images.
+- Evaluation: Predict bit_density on test set, compute predicted file_size = bit_density * num_pixels / 8, then evaluate R² for file_size prediction.
+
+#### Mid-Resolution Model Performance
+
+| Metric | Value |
+|--------|-------|
+| R² Score | 0.93 |
+
+The mid-resolution model achieves an R² score of 0.93 for file_size prediction. The model is saved to `data/mid_res_model.pkl`.
+
 
 ## Conclusions
 

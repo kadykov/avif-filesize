@@ -38,6 +38,45 @@ y_test = test_data[target]
 # Train Polynomial Regression (degree 1 with StandardScaler)
 model = Pipeline([('scaler', StandardScaler()), ('poly', PolynomialFeatures(degree=1)), ('linear', LinearRegression())])
 model.fit(X_train, y_train)
+# Get coefficients
+coef = model.named_steps['linear'].coef_
+feature_importance = list(zip(features, coef))
+# Sort by absolute coefficient
+sorted_features = sorted(feature_importance, key=lambda x: abs(x[1]), reverse=True)
+print("Feature coefficients:")
+for feat, coeff in sorted_features:
+    print(f"{feat}: {coeff}")
+# Select top 5, including low_res_bit_density
+top_features = [f for f, c in sorted_features[:5]]
+if 'low_res_bit_density' not in top_features:
+    top_features = top_features[:4] + ['low_res_bit_density']
+print(f"Selected top features: {top_features}")
+
+# Retrain with selected features
+X_train_simp = train_data[top_features]
+X_test_simp = test_data[top_features]
+model_simp = Pipeline([('scaler', StandardScaler()), ('poly', PolynomialFeatures(degree=1)), ('linear', LinearRegression())])
+model_simp.fit(X_train_simp, y_train)
+
+# Evaluate simplified model
+y_pred_simp = model_simp.predict(X_test_simp)
+predicted_file_size_simp = y_pred_simp * test_data['num_pixels'] / 8
+actual_file_size = test_data['file_size']
+r2_simp = r2_score(actual_file_size, predicted_file_size_simp)
+print(f"Simplified Model R2 Score (file_size): {r2_simp}")
+
+# Feature importance for simplified model
+coef_simp = model_simp.named_steps['linear'].coef_
+simp_importance = list(zip(top_features, coef_simp))
+print("Simplified model feature importance:")
+for feat, coeff in simp_importance:
+    print(f"{feat}: {coeff}")
+
+# Save simplified model
+with open('data/simplified_model.pkl', 'wb') as f:
+    pickle.dump(model_simp, f)
+print("Simplified model saved as data/simplified_model.pkl")
+
 
 # Evaluate on test set
 y_pred_bit_density = model.predict(X_test)
