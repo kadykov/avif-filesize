@@ -178,6 +178,44 @@ To focus on mid-resolution images, we trained a model specifically on data where
 
 The mid-resolution model achieves an R² score of 0.93 for file_size prediction. The model is saved to `data/mid_res_model.pkl`.
 
+### Full High Res Model
+
+To focus on high-resolution images, we trained a model on data where resolution >=1200 pixels, including full-resolution images encoded at quality 65.
+
+- Features: entropy, variance, edge_density, y_entropy, y_variance, u_variance, v_variance, y_edge_density, y_mean, laplacian_variance, gradient_magnitude, rms_contrast, num_pixels.
+- Target: bit_density.
+- Model: Polynomial Regression (degree 1 with StandardScaler).
+- Train/Test Split: 80/20 split based on unique images.
+- Evaluation: Predict bit_density on test set.
+
+#### Full High Res Model Performance
+
+| Metric | Value |
+|--------|-------|
+| MSE    | 0.0259 |
+| MAE    | 0.1285 |
+| R² Score | 0.894 |
+
+The full high res model achieves an R² score of 0.89 for bit_density prediction. The model is saved to `data/full_high_res_model.pkl`.
+
+#### Feature Importance
+
+The coefficients for the full high res model are:
+
+- gradient_magnitude: 0.431
+- entropy: 0.197
+- y_entropy: -0.175
+- y_variance: 0.144
+- rms_contrast: -0.111
+- num_pixels: 0.088
+- y_edge_density: -0.069
+- laplacian_variance: -0.062
+- variance: -0.049
+- edge_density: 0.036
+- v_variance: 0.019
+- y_mean: 0.019
+- u_variance: 0.006
+
 
 ## Conclusions
 

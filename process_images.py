@@ -65,3 +65,14 @@ with open(csv_path, 'w', newline='') as csvfile:
             writer.writerow([image_name, width, file_size, entropy, variance, edge_density, y_entropy, y_variance, u_variance, v_variance, y_edge_density, y_mean, laplacian_variance, gradient_magnitude, rms_contrast, num_pixels, bit_density])
             # remove temp
             os.remove(temp_path)
+        # Full resolution processing
+        num_pixels = img.width * img.height
+        temp_path = f'temp_{image_name}_full.png'
+        img.save(temp_path)
+        avif_name = f'{image_name}_full.avif'
+        avif_path = os.path.join(avif_dir, avif_name)
+        subprocess.run(['avifenc', temp_path, '-o', avif_path, '-q', '65'], check=True)
+        file_size = os.path.getsize(avif_path)
+        bit_density = (file_size * 8) / num_pixels
+        writer.writerow([image_name, img.width, file_size, entropy, variance, edge_density, y_entropy, y_variance, u_variance, v_variance, y_edge_density, y_mean, laplacian_variance, gradient_magnitude, rms_contrast, num_pixels, bit_density])
+        os.remove(temp_path)
