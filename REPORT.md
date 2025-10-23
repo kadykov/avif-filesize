@@ -216,6 +216,41 @@ The coefficients for the full high res model are:
 - y_mean: 0.019
 - u_variance: 0.006
 
+### Full Res Known Model
+
+To leverage full-resolution compression information, we trained a model that uses the bit density at the highest resolution for each image as an additional feature. For each image, the full-resolution bit density is identified from the row with the maximum resolution. This feature is then added to rows with lower resolutions for that image.
+
+- Features: entropy, variance, edge_density, y_entropy, y_variance, u_variance, v_variance, y_edge_density, y_mean, laplacian_variance, gradient_magnitude, rms_contrast, full_res_bit_density.
+- Target: bit_density.
+- Model: Polynomial Regression (degree 1 with StandardScaler).
+- Train/Test Split: 80/20 split based on unique images, training on lower resolution rows with full_res_bit_density added.
+- Evaluation: Predict bit_density on test set (images not in train), compute predicted file_size = bit_density * num_pixels / 8, then evaluate R² for file_size prediction.
+
+#### Full Res Known Model Performance
+
+| Metric | Value |
+|--------|-------|
+| R² Score | 0.7690 |
+
+The full res known model achieves an R² score of 0.77 for file_size prediction. The model is saved to `data/full_res_known_model.pkl`.
+
+### Full Res Known Model v2
+
+To focus training on higher resolutions, we modified the model to train only on rows where resolution >=1200 and < max_res for each image, filtering out lower resolutions like 400 and 800.
+
+- Features: entropy, variance, edge_density, y_entropy, y_variance, u_variance, v_variance, y_edge_density, y_mean, laplacian_variance, gradient_magnitude, rms_contrast, full_res_bit_density.
+- Target: bit_density.
+- Model: Polynomial Regression (degree 1 with StandardScaler).
+- Train/Test Split: 80/20 split based on unique images, training on filtered lower resolution rows with full_res_bit_density added.
+- Evaluation: Predict bit_density on test set (images not in train), compute predicted file_size = bit_density * num_pixels / 8, then evaluate R² for file_size prediction.
+
+#### Full Res Known Model v2 Performance
+
+| Metric | Value |
+|--------|-------|
+| R² Score | 0.7176 |
+
+The full res known model v2 achieves an R² score of 0.72 for file_size prediction. The model is saved to `data/full_res_known_model_v2.pkl`.
 
 ## Conclusions
 
